@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "python-test-book-app"
+version = "0.1.0"
+description = ""
+authors = ["Kuriz15 <chrisbutalid@gmail.com>"]
+readme = "README.md"
+packages = [{include = "python_test_book_app"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.110.2"
+black = "^24.4.1"
+uvicorn = "^0.29.0"
+sqlalchemy = "^2.0.29"
+alembic = "^1.13.1"
+geopy = "^2.4.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
