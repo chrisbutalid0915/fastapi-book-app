@@ -2,7 +2,7 @@ from sqlalchemy.ext.declarative import declarative_base
 
 # from app import engine
 from sqlalchemy import Column, Integer, Float, String
-from pydantic import BaseModel
+from pydantic import BaseModel # It a way to define data model with validation and serialization 
 
 # create a base from declarative class definitions
 Base = declarative_base()
