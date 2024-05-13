@@ -19,7 +19,7 @@ from app.utils.utils import calculate_distance
 from typing import List
 
 
-router = fastapi.APIRouter() # create a new router instance 
+router = fastapi.APIRouter() # create a new router instance
 
 
 # Configure logging settings
@@ -74,16 +74,19 @@ def create_address(address: AddressCreate, db: Session = Depends(get_db)):
     :param db: class
     :return: class
     """
-    logging.info("POST /create_address")
-    # Create a new address object with the data from AddressCreate input
-    address = Address(**address.dict())
-    # Add the new created address to the database session
-    db.add(address)
-    # Commit the transaction
-    db.commit()
-    # Refresh the address object to ensure the changes
-    db.refresh(address)
-    return address
+    try:
+        logging.info("POST /create_address")
+        # Create a new address object with the data from AddressCreate input
+        address = Address(**address.dict())
+        # Add the new created address to the database session
+        db.add(address)
+        # Commit the transaction
+        db.commit()
+        # Refresh the address object to ensure the changes
+        db.refresh(address)
+        return address
+    except Exception as e:
+        logging.error(f"Error occurred: {e}")
 
 
 @router.put("/update_address/{address_id}", response_model=GetAddress, tags=["Address"])
