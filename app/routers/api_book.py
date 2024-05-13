@@ -19,7 +19,7 @@ from app.utils.utils import calculate_distance
 from typing import List
 
 
-router = fastapi.APIRouter()
+router = fastapi.APIRouter() # create a new router instance 
 
 
 # Configure logging settings

@@ -1,8 +1,8 @@
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.ext.declarative import declarative_base # process of definining SQLAlchemy models
 
 # from app import engine
-from sqlalchemy import Column, Integer, Float, String
-from pydantic import BaseModel # It a way to define data model with validation and serialization 
+from sqlalchemy import Column, Integer, Float, String # import the class of SQLAlchemy that will define structure of data stored
+from pydantic import BaseModel # It a way to define data model with validating the incoming request
 
 # create a base from declarative class definitions
 Base = declarative_base()
@@ -50,5 +50,4 @@ class DistanceRequest(BaseModel):
     latitude: float
     longitude: float
 
-    # class Config:
-    #     orm_mode = True
+
