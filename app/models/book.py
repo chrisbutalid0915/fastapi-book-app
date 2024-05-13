@@ -32,14 +32,14 @@ class AddressID(BaseModel):
 class AddressCreate(AddressBase):
     @field_validator('latitude')
     def validate_latitude(cls, lat):
-         if -90 < lat < 90:
+         if -90 < lat <= 90:
             return lat
          else:
             raise ValueError('Latitude must be between -90 and 90 degrees')
          
     @field_validator('longitude')
     def validate_longitude(cls, long):
-         if -180 < long < 180:
+         if -180 < long <= 180:
             return long
          else:
              raise ValueError('Longitude must be between -180 and 180 degrees')
