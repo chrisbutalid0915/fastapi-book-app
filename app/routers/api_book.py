@@ -5,8 +5,10 @@ from fastapi.openapi.models import OpenAPI
 from fastapi.responses import HTMLResponse
 from app.models.book import (
     Address,
+    GetAddress,
     AddressCreate,
     AddressUpdate,
+    DeleteAddress,
     DistanceRequest
 )
 from app.database import get_db
@@ -14,6 +16,7 @@ from fastapi import Query, Depends, HTTPException
 from sqlalchemy.orm import Session
 from geopy.distance import geodesic
 from app.utils.utils import calculate_distance
+from typing import List
 
 
 router = fastapi.APIRouter()
@@ -63,7 +66,7 @@ async def read_root():
     """
 
 
-@router.post("/create_address")
+@router.post("/create_address", response_model=GetAddress, tags=["Address"])
 def create_address(address: AddressCreate, db: Session = Depends(get_db)):
     """
     Create new Address Book
@@ -83,7 +86,7 @@ def create_address(address: AddressCreate, db: Session = Depends(get_db)):
     return address
 
 
-@router.put("/update_address/{address_id}")
+@router.put("/update_address/{address_id}", response_model=GetAddress, tags=["Address"])
 def update_address(
     address_id: int, address: AddressUpdate, db: Session = Depends(get_db)
 ):
@@ -112,7 +115,7 @@ def update_address(
     return query
 
 
-@router.get("/get_address/{address_id}")
+@router.get("/get_address/{address_id}", response_model=GetAddress, tags=["Address"])
 def get_address(address_id: int, db: Session = Depends(get_db)):
     """
     Get the address book by id
@@ -130,7 +133,7 @@ def get_address(address_id: int, db: Session = Depends(get_db)):
     return query
 
 
-@router.get("/get_addresses")
+@router.get("/get_addresses", response_model=List[GetAddress], tags=["Address"])
 def get_addresses(db: Session = Depends(get_db)):
     """
     Get all the addresses
@@ -143,11 +146,9 @@ def get_addresses(db: Session = Depends(get_db)):
     return query
 
 
-@router.get("/addresses/distance/")
+@router.get("/addresses/distance/", response_model=List[GetAddress], tags=["Address"])
 def get_addresses_within_distance(
     request: DistanceRequest,
-    # latitude: float = Query(...),
-    # longitude: float = Query(...),
     db: Session = Depends(get_db)
 ):
     """
@@ -169,7 +170,7 @@ def get_addresses_within_distance(
     return addresses_within_distance
 
 
-@router.delete("/delete_address/{address_id}")
+@router.delete("/delete_address/{address_id}", response_model=DeleteAddress , tags=["Address"])
 def delete_address(address_id: int, db: Session = Depends(get_db)):
     """
     Delete the address book by id
@@ -181,6 +182,7 @@ def delete_address(address_id: int, db: Session = Depends(get_db)):
     # Get the address by ID
     query = db.query(Address).filter(Address.id == address_id).first()
     if query is None:
+        logging.error(f"DELETE /delete_address/{address_id} not found")
         raise HTTPException(status_code=404, detail="Address not found")
     # Delete the selected query address
     db.delete(query) 

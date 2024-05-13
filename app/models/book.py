@@ -25,6 +25,10 @@ class AddressBase(BaseModel):
     longitude: float
 
 
+class AddressID(BaseModel):
+    id: int
+
+
 class AddressCreate(AddressBase):
     pass
 
@@ -33,8 +37,12 @@ class AddressUpdate(AddressBase):
     pass
 
 
-class GetAddress(AddressBase):
-    id: int
+class GetAddress(AddressBase,AddressID):
+    pass
+
+
+class DeleteAddress(AddressBase, AddressID):
+    pass
 
 
 class DistanceRequest(BaseModel):
