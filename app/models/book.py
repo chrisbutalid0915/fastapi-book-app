@@ -2,7 +2,7 @@ from sqlalchemy.ext.declarative import declarative_base # process of definining 
 
 # from app import engine
 from sqlalchemy import Column, Integer, Float, String # import the class of SQLAlchemy that will define structure of data stored
-from pydantic import BaseModel # It a way to define data model with validating the incoming request
+from pydantic import confloat, field_validator, BaseModel # It a way to define data model with validating the incoming request
 
 # create a base from declarative class definitions
 Base = declarative_base()
@@ -30,7 +30,19 @@ class AddressID(BaseModel):
 
 
 class AddressCreate(AddressBase):
-    pass
+    @field_validator('latitude')
+    def validate_latitude(cls, lat):
+         if -90 < lat < 90:
+            return lat
+         else:
+            raise ValueError('Latitude must be between -90 and 90 degrees')
+         
+    @field_validator('longitude')
+    def validate_longitude(cls, long):
+         if -180 < long < 180:
+            return long
+         else:
+             raise ValueError('Longitude must be between -180 and 180 degrees')
 
 
 class AddressUpdate(AddressBase):
