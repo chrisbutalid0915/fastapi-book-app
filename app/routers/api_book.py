@@ -3,8 +3,8 @@ import logging
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.openapi.models import OpenAPI
 from fastapi.responses import HTMLResponse
-from app.models.book import (
-    Address,
+from app.models.book import Address
+from app.schemas.book import (
     GetAddress,
     AddressCreate,
     AddressUpdate,
@@ -66,7 +66,7 @@ async def read_root():
     """
 
 
-@router.post("/create_address", response_model=GetAddress, tags=["Address"])
+@router.post("/address", response_model=GetAddress, tags=["Address"])
 def create_address(address: AddressCreate, db: Session = Depends(get_db)):
     """
     Create new Address Book
@@ -75,7 +75,7 @@ def create_address(address: AddressCreate, db: Session = Depends(get_db)):
     :return: class
     """
     try:
-        logging.info("POST /create_address")
+        logging.info("POST /address")
         # Create a new address object with the data from AddressCreate input
         address = Address(**address.dict())
         # Add the new created address to the database session
@@ -89,7 +89,7 @@ def create_address(address: AddressCreate, db: Session = Depends(get_db)):
         logging.error(f"Error occurred: {e}")
 
 
-@router.put("/update_address/{address_id}", response_model=GetAddress, tags=["Address"])
+@router.put("/address/{address_id}", response_model=GetAddress, tags=["Address"])
 def update_address(
     address_id: int, address: AddressUpdate, db: Session = Depends(get_db)
 ):
@@ -100,12 +100,12 @@ def update_address(
     :param db: class
     :return: query
     """
-    logging.info(f"PUT /update_address/{address_id}")
+    logging.info(f"PUT /address/{address_id}")
     # Get the address by ID
     query = db.query(Address).filter(Address.id == address_id).first()
     if query is None:
         # Return Exception 404 when no address found
-        logging.error(f"PUT /update_address/{address_id} not found")
+        logging.error(f"PUT /address/{address_id} not found")
         raise HTTPException(status_code=404, detail="Address not found")
 
     # update the selected query
@@ -118,7 +118,7 @@ def update_address(
     return query
 
 
-@router.get("/get_address/{address_id}", response_model=GetAddress, tags=["Address"])
+@router.get("/address/{address_id}", response_model=GetAddress, tags=["Address"])
 def get_address(address_id: int, db: Session = Depends(get_db)):
     """
     Get the address book by id
@@ -126,30 +126,30 @@ def get_address(address_id: int, db: Session = Depends(get_db)):
     :param db: class
     :return: query
     """
-    logging.info(f"GET /get_address/{address_id}")
+    logging.info(f"GET /address/{address_id}")
     # Get the address by ID
     query = db.query(Address).filter(Address.id == address_id).first()
     if query is None:
         # Return Exception 404 when no address found
-        logging.error(f"GET /get_address/{address_id} not found")
+        logging.error(f"GET /address/{address_id} not found")
         raise HTTPException(status_code=404, detail="Address not found")
     return query
 
 
-@router.get("/get_addresses", response_model=List[GetAddress], tags=["Address"])
+@router.get("/address", response_model=List[GetAddress], tags=["Address"])
 def get_addresses(db: Session = Depends(get_db)):
     """
     Get all the addresses
     :param db: class
     :return: query
     """
-    logging.info(f"GET /get_addresses")
+    logging.info(f"GET /address")
     # Get all the addresses
     query = db.query(Address).all() 
     return query
 
 
-@router.get("/addresses/distance/", response_model=List[GetAddress], tags=["Address"])
+@router.get("/address/distance/", response_model=List[GetAddress], tags=["Address"])
 def get_addresses_within_distance(
     request: DistanceRequest,
     db: Session = Depends(get_db)
@@ -162,18 +162,19 @@ def get_addresses_within_distance(
     :param db: class
     :return: list
     """
-    logging.info(f"GET /addresses/distance")
-    center_point = (request.latitude, request.longitude)
+    logging.info(f"GET /address/distance")
+    current_location = (request.latitude, request.longitude)
     addresses_within_distance = []
     all_addresses = db.query(Address).all()
     for address in all_addresses:
         address_coordinates = (address.latitude,address.longitude)
-        if calculate_distance(*center_point, *address_coordinates) <= request.distance:
+        if geodesic(current_location, address_coordinates).km <= request.distance:
+        # if calculate_distance(*current_location, *address_coordinates) <= request.distance:
             addresses_within_distance.append(address)
     return addresses_within_distance
 
 
-@router.delete("/delete_address/{address_id}", response_model=DeleteAddress , tags=["Address"])
+@router.delete("/address/{address_id}", response_model=DeleteAddress , tags=["Address"])
 def delete_address(address_id: int, db: Session = Depends(get_db)):
     """
     Delete the address book by id
@@ -181,11 +182,11 @@ def delete_address(address_id: int, db: Session = Depends(get_db)):
     :param db: class
     :return: query
     """
-    logging.info(f"DELETE /delete_address/{address_id}")
+    logging.info(f"DELETE /address/{address_id}")
     # Get the address by ID
     query = db.query(Address).filter(Address.id == address_id).first()
     if query is None:
-        logging.error(f"DELETE /delete_address/{address_id} not found")
+        logging.error(f"DELETE /address/{address_id} not found")
         raise HTTPException(status_code=404, detail="Address not found")
     # Delete the selected query address
     db.delete(query) 
