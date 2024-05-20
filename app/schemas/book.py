@@ -1,7 +1,7 @@
 from pydantic import confloat, field_validator, BaseModel # It a way to define data model with validating the incoming request
 
 
-class AddressBase(BaseModel):
+class AddressBase(BaseModel): # defining a data that you want to access 
     location: str
     latitude: float
     longitude: float

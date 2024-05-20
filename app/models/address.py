@@ -1,10 +1,5 @@
-from sqlalchemy.ext.declarative import declarative_base # process of definining SQLAlchemy models
-
-# from app import engine
 from sqlalchemy import Column, Integer, Float, String # import the class of SQLAlchemy that will define structure of data stored
-
-# create a base from declarative class definitions
-Base = declarative_base()
+from ..database import Base, engine
 
 
 class Address(Base):
@@ -13,3 +8,6 @@ class Address(Base):
     location = Column(String, index=True)
     latitude = Column(Float)
     longitude = Column(Float)
+
+
+Base.metadata.create_all(bind=engine) # create the database tables on the defined models

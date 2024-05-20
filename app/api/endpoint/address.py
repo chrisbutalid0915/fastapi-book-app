@@ -1,10 +1,6 @@
 import fastapi
 import logging
-from fastapi.openapi.docs import get_swagger_ui_html
-from fastapi.openapi.models import OpenAPI
-from fastapi.responses import HTMLResponse
-# from app.models.book import Address
-from app.models.address import Address
+
 from app.schemas.book import (
     GetAddress,
     AddressCreate,
@@ -17,17 +13,9 @@ from fastapi import Query, Depends, HTTPException
 from sqlalchemy.orm import Session
 from geopy.distance import geodesic
 from typing import List
+from app.schemas.user import UserBase
+from app.services import get_current_active_user
 
-# Authentication
-from fastapi.security import OAuth2PasswordBearer
-from datetime import datetime, timedelta
-# from passlib.context import CryptContext
-# import jose
-
-
-SECRET_KEY="c2426d96adfa1412615c13381b982d7d8ee91668a87136c42e1583dcd001d681" # run `rand hex 32` to generate Random Hex Number
-ALGORITHM ="HS256" # encryption algorithm
-ACCESS_TOKEN_EXPIRE_MINUTES=30
 
 router = fastapi.APIRouter() # create a new router instance
 
@@ -39,45 +27,11 @@ logging.basicConfig(
 )
 
 
-@router.get("/openapi.json")
-async def get_open_api_endpoint():
-    """
-    Returns the OPENAPI schema in JSON Format
-    """
-    logging.info("GET /openapi.json")
-    return HTMLResponse(OpenAPI().dict())
 
 
-@router.get("/docs", include_in_schema=False)
-async def custom_swagger_ui_html():
-    """
-    Serves a customized Swagger UI HTML page
-    """
-    logging.info("GET /docs")
-    return get_swagger_ui_html(openapi_url="/openapi.json", title="Custom Swagger UI")
-
-
-@router.get("/", response_class=HTMLResponse)
-async def read_root():
-    """
-    Serves the root URL ("/") with a custom HTML response
-    """
-    logging.info("GET /")
-    return """
-    <html>
-        <head>
-            <title>Custom Swagger UI</title>
-        </head>
-        <body>
-            <h1>Custom Swagger UI</h1>
-            <p>Find the API documentation <a href="/docs">here</a>.</p>
-        </body>
-    </html>
-    """
-
-
-@router.post("/address", response_model=GetAddress, tags=["Address"])
-def create_address(address: AddressCreate, db: Session = Depends(get_db)):
+@router.post("/address", response_model=GetAddress)
+def create_address(address: AddressCreate, db: Session = Depends(get_db), UserBase = Depends(get_current_active_user)):
+    from app.models.address import Address
     """
     Create new Address Book
     :param address: class
@@ -87,7 +41,7 @@ def create_address(address: AddressCreate, db: Session = Depends(get_db)):
     try:
         logging.info("POST /address")
         # Create a new address object with the data from AddressCreate input
-        address = Address(**address.dict())
+        address = Address(**dict(address))
         # Add the new created address to the database session
         db.add(address)
         # Commit the transaction
@@ -99,9 +53,10 @@ def create_address(address: AddressCreate, db: Session = Depends(get_db)):
         logging.error(f"Error occurred: {e}")
 
 
-@router.put("/address/{address_id}", response_model=GetAddress, tags=["Address"])
+@router.put("/address/{address_id}", response_model=GetAddress)
 def update_address(
-    address_id: int, address: AddressUpdate, db: Session = Depends(get_db)
+    address_id: int, address: AddressUpdate, db: Session = Depends(get_db),
+    UserBase = Depends(get_current_active_user)
 ):
     """
     Update details Address Book
@@ -128,8 +83,8 @@ def update_address(
     return query
 
 
-@router.get("/address/{address_id}", response_model=GetAddress, tags=["Address"])
-def get_address(address_id: int, db: Session = Depends(get_db)):
+@router.get("/address/{address_id}", response_model=GetAddress)
+def get_address(address_id: int, db: Session = Depends(get_db), UserBase = Depends(get_current_active_user)):
     """
     Get the address book by id
     :param address_id: int
@@ -146,8 +101,8 @@ def get_address(address_id: int, db: Session = Depends(get_db)):
     return query
 
 
-@router.get("/address", response_model=List[GetAddress], tags=["Address"])
-def get_addresses(db: Session = Depends(get_db)):
+@router.get("/address", response_model=List[GetAddress])
+def get_addresses(db: Session = Depends(get_db), UserBase = Depends(get_current_active_user)):
     """
     Get all the addresses
     :param db: class
@@ -159,10 +114,11 @@ def get_addresses(db: Session = Depends(get_db)):
     return query
 
 
-@router.get("/address/distance/", response_model=List[GetAddress], tags=["Address"])
+@router.get("/address/distance/", response_model=List[GetAddress])
 def get_addresses_within_distance(
     request: DistanceRequest,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    UserBase = Depends(get_current_active_user)
 ):
     """
     Get the addresses within the given distance
@@ -179,13 +135,12 @@ def get_addresses_within_distance(
     for address in all_addresses:
         address_coordinates = (address.latitude,address.longitude)
         if geodesic(current_location, address_coordinates).km <= request.distance:
-        # if calculate_distance(*current_location, *address_coordinates) <= request.distance:
             addresses_within_distance.append(address)
     return addresses_within_distance
 
 
-@router.delete("/address/{address_id}", response_model=DeleteAddress , tags=["Address"])
-def delete_address(address_id: int, db: Session = Depends(get_db)):
+@router.delete("/address/{address_id}", response_model=DeleteAddress)
+def delete_address(address_id: int, db: Session = Depends(get_db), UserBase = Depends(get_current_active_user)):
     """
     Delete the address book by id
     :param address_id: int
