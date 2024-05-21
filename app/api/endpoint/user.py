@@ -13,15 +13,6 @@ from app.services import get_password_hash
 router = fastapi.APIRouter()
 
 
-# async def get_current_active_user(current_user: User):
-#     from app.services import get_current_user
-#     current_user = Depends(get_current_user)
-#     if current_user.disable:
-#         raise HTTPException(status_code=400, detail="Inactive User")
-#     return current_user
-
-
-
 @router.post("/users/", response_model=UserBase)
 async def create_user(user: UserInDB, db: Session = Depends(get_db), current_user: UserBase = Depends(get_current_active_user)):
     from app.models.user import User

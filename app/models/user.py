@@ -1,5 +1,10 @@
 from sqlalchemy import Column, Integer, Boolean, String # import the class of SQLAlchemy that will define structure of data stored
-from ..database import Base, engine
+from ..database import engine
+from sqlalchemy.ext.declarative import declarative_base  # process of definining SQLAlchemy models
+
+
+Base = declarative_base()
+
 
 class User(Base):
     __tablename__ = "users"

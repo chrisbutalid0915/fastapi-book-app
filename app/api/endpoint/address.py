@@ -8,6 +8,7 @@ from app.schemas.book import (
     DeleteAddress,
     DistanceRequest
 )
+from app.models.address import Address
 from app.database import get_db
 from fastapi import Query, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -25,8 +26,6 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s"
 )
-
-
 
 
 @router.post("/address", response_model=GetAddress)

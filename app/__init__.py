@@ -1,13 +1,7 @@
 from fastapi import FastAPI
-# from app.routers import api_book
 from app.api.endpoint import swagger, address, token, user
-from app import models
-from .database import Base, engine
 
-Base.metadata.create_all(bind=engine) 
 
-# Address()
-# User()
 def create_app():
     """Construct the core application"""
     app = FastAPI(

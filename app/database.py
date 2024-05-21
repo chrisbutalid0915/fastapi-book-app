@@ -1,13 +1,12 @@
 from pathlib import Path
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base  # process of definining SQLAlchemy models
 
 # CONSTANT
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SQLAlchemy Database URL
-db_path = f"sqlite:///{BASE_DIR}/db.sqlite3"
+db_path = f"sqlite:///{BASE_DIR}/test_db.sqlite3"
 SQLALCHEMY_DATABASE_URL = db_path
 
 # Create database engine
@@ -15,8 +14,6 @@ engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread
 
 # Create a sessionmake to manage database sessions
 session_local = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-Base = declarative_base()
 
 # Function to get a database session
 def get_db():

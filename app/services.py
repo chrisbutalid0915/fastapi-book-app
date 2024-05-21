@@ -1,4 +1,4 @@
-
+import logging
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from fastapi import Query, Depends, HTTPException, status
@@ -8,8 +8,8 @@ from app.schemas.user import UserInDB, TokenData
 from datetime import datetime, timedelta
 from jose import JWTError, jwt
 from passlib.context import CryptContext
-import logging
 
+from typing import Optional
 
 SECRET_KEY="c2426d96adfa1412615c13381b982d7d8ee91668a87136c42e1583dcd001d681" # run `rand hex 32` to generate Random Hex Number
 ALGORITHM ="HS256" # encryption algorithm
@@ -46,7 +46,7 @@ def authenticate_user(db, username: str, password: str):
     return user
 
 
-def create_access_token(data: dict, expires_delta: timedelta or None = None):
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.now() + expires_delta
