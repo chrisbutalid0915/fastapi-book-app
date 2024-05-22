@@ -50,7 +50,7 @@ def create_address(
     try:
         logging.info("POST /address")
         # Create a new address object with the data from AddressCreate input
-        address = Address(**dict(address))
+        address = Address(**address.dict())
         # Add the new created address to the database session
         db.add(address)
         # Commit the transaction
@@ -146,15 +146,17 @@ def get_addresses_within_distance(
     :return: list
     """
     logging.info(f"GET /address/distance")
-    current_location = (request.latitude, request.longitude)
-    addresses_within_distance = []
-    all_addresses = db.query(Address).all()
-    for address in all_addresses:
-        address_coordinates = (address.latitude, address.longitude)
-        if geodesic(current_location, address_coordinates).km <= request.distance:
-            addresses_within_distance.append(address)
-    return addresses_within_distance
-
+    try:
+        current_location = (request.latitude, request.longitude)
+        addresses_within_distance = []
+        all_addresses = db.query(Address).all()
+        for address in all_addresses:
+            address_coordinates = (address.latitude, address.longitude)
+            if geodesic(current_location, address_coordinates).km <= request.distance:
+                addresses_within_distance.append(address)
+        return addresses_within_distance
+    except Exception as e:
+        logging.error(f'addreess distance error: {e}')
 
 @router.delete("/address/{address_id}", response_model=DeleteAddress)
 def delete_address(

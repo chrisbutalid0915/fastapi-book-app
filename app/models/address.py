@@ -14,7 +14,6 @@ class Address(Base):
     location = Column(String, index=True)
     latitude = Column(Float)
     longitude = Column(Float)
-    disable = Column(Boolean)
 
 
 Base.metadata.create_all(

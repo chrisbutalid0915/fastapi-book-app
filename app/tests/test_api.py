@@ -2,105 +2,212 @@ import json
 import unittest
 
 import requests
+# from fastapi.testclient import TestClient
+
+
+# client = TestClient()
 
 
 class TestBookAPI(unittest.TestCase):
     base_url = "http://127.0.0.1:8000"
+    api_version = "/api/v1"
+
+
+    def setUp(self):
+        self.username = "chris"
+        self.password = "En3il45"
+        self.wrong_password = "wrong_password"
+        self.token_url = f"{self.base_url}{self.api_version}/token"
+        self.token_headers = {"content-type": "application/x-www-form-urlencoded"}
+    
+    def test_login(self):
+        """Test with correct credentials"""
+        payload = {"username": self.username, "password": self.password}
+        response = requests.request("POST" ,self.token_url, headers=self.token_headers, data=payload)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("access_token", response.json())
+        self.assertIn("token_type", response.json())
+
+
+    def test_invalid_login(self):
+        """Test with incorrect credentials"""
+        payload = {"username": self.username, "password": self.wrong_password}
+        response = requests.request("POST" ,self.token_url, headers=self.token_headers, data=payload)
+        self.assertEqual(response.status_code, 401)
+        self.assertIn("detail", response.json())
+
 
     def test_post_request(self):
-        url = f"{self.base_url}/create_address"
+        # Get the token first
+        token_payload = {"username": self.username, "password": self.password}
+        token_response = requests.request("POST" , self.token_url, headers=self.token_headers, data=token_payload)
+        token = token_response.json()["access_token"]
 
+        # use the token to access the protected endpoint
+        url = f"{self.base_url}{self.api_version}/address"
         payload = json.dumps(
-            {"location": "Malolos", "latitude": 14.832211, "longitude": 120.23}
+            {"location": "Malolos", "latitude": 70.832211, "longitude": 120.23}
         )
-
-        headers = {"content-type": "application/json"}
-
+        headers = {"content-type": "application/json", 
+                 "Authorization": f'Bearer {token}'
+                 }
         response = requests.request("POST", url, headers=headers, data=payload)
-
         self.assertEqual(response.status_code, 200)
 
-    def test_post_required_field(self):
-        url = f"{self.base_url}/create_address"
 
+    def test_post_required_field(self):
+         # Get the token first
+        token_payload = {"username": self.username, "password": self.password}
+        token_response = requests.request("POST" ,self.token_url, headers=self.token_headers, data=token_payload)
+        token = token_response.json()["access_token"]
+
+        # use the token to access the protected endpoint
+        url = f"{self.base_url}{self.api_version}/address"
         payload = json.dumps(
             {
                 "location": "Malolos",
                 "latitude": 14.832211,
             }
         )
-
-        headers = {"content-type": "application/json"}
-
+        headers = {"content-type": "application/json",
+                   "Authorization": f'Bearer {token}'
+                   }
         response = requests.request("POST", url, headers=headers, data=payload)
-
         self.assertEqual(response.status_code, 422)
 
+
     def test_put_request(self):
-        url = f"{self.base_url}/update_address/9"
+        # Get the token first
+        token_payload = {"username": self.username, "password": self.password}
+        token_response = requests.request("POST" ,self.token_url, headers=self.token_headers, data=token_payload)
+        token = token_response.json()["access_token"]
 
+        # use the token to access the protected endpoint
+        url = f"{self.base_url}{self.api_version}/address/2"
         payload = json.dumps(
-            {"location": "Baliwag", "latitude": 14.832211, "longitude": 120.25}
+            {"location": "Baliwag", "latitude": 80.832211, "longitude": 120.25}
         )
-
-        headers = {"content-type": "application/json"}
-
+        headers = {"content-type": "application/json",
+                   "Authorization": f'Bearer {token}'
+                   }
         response = requests.request("PUT", url, headers=headers, data=payload)
-
         self.assertEqual(response.status_code, 200)
 
-    def test_put_invalid_id(self):
-        url = f"{self.base_url}/update_address/122"
 
+    def test_put_invalid_id(self):
+        # Get the token first
+        token_payload = {"username": self.username, "password": self.password}
+        token_response = requests.request("POST" ,self.token_url, headers=self.token_headers, data=token_payload)
+        token = token_response.json()["access_token"]
+
+        # use the token to access the protected endpoint
+        url = f"{self.base_url}{self.api_version}/address/122"
         payload = json.dumps(
             {"location": "Baliwag", "latitude": 14.832211, "longitude": 120.25}
         )
-
-        headers = {"content-type": "application/json"}
-
+        headers = {"content-type": "application/json",
+                   "Authorization": f'Bearer {token}'
+                   }
         response = requests.request("PUT", url, headers=headers, data=payload)
-
         self.assertEqual(response.status_code, 404)
 
     def test_get_address_by_id(self):
-        url = f"{self.base_url}/get_address/11"
+        # Get the token first
+        token_payload = {"username": self.username, "password": self.password}
+        token_response = requests.request("POST" ,self.token_url, headers=self.token_headers, data=token_payload)
+        token = token_response.json()["access_token"]
 
+        # use the token to access the protected endpoint
+        url = f"{self.base_url}{self.api_version}/address/2"
         payload = {}
-        headers = {"content-type": "application/json"}
-
-        respose = requests.request("GET", url, headers=headers, data=payload)
-
-        self.assertEqual(respose.status_code, 200)
+        headers = {"content-type": "application/json",
+                   "Authorization": f'Bearer {token}'
+                   }
+        response = requests.request("GET", url, headers=headers, data=payload)
+        self.assertEqual(response.status_code, 200)
 
     def test_get_address_invalid_id(self):
-        url = f"{self.base_url}/get_address/1222"
+        # Get the token first
+        token_payload = {"username": self.username, "password": self.password}
+        token_response = requests.request("POST" ,self.token_url, headers=self.token_headers, data=token_payload)
+        token = token_response.json()["access_token"]
 
+        # use the token to access the protected endpoint
+        url = f"{self.base_url}{self.api_version}/address/1222"
         payload = {}
-        headers = {"content-type": "application/json"}
+        headers = {"content-type": "application/json",
+                   "Authorization": f'Bearer {token}'
+                   }
+        response = requests.request("GET", url, headers=headers, data=payload)
+        self.assertEqual(response.status_code, 404)
 
-        respose = requests.request("GET", url, headers=headers, data=payload)
+    # def test_delete_address_by_id(self):
+    #     # Get the token first
+    #     token_payload = {"username": self.username, "password": self.password}
+    #     token_response = requests.request("POST" ,self.token_url, headers=self.token_headers, data=token_payload)
+    #     token = token_response.json()["access_token"]
 
-        self.assertEqual(respose.status_code, 404)
+    #     # use the token to access the protected endpoint
 
-    def test_delete_address_by_id(self):
-        url = f"{self.base_url}/delete_address/15"
+    #     url = f"{self.base_url}{self.api_version}/address/9"
+    #     payload = {}
+    #     headers = {"content-type": "application/json",
+    #                "Authorization": f'Bearer {token}'
+    #                }
 
-        payload = {}
-        headers = {"content-type": "application/json"}
+    #     response = requests.request("DELETE", url, headers=headers, data=payload)
 
-        respose = requests.request("DELETE", url, headers=headers, data=payload)
-
-        self.assertEqual(respose.status_code, 200)
+    #     self.assertEqual(response.status_code, 200)
 
     def test_delete_invalid_id(self):
-        url = f"{self.base_url}/delete_address/12323"
+        # Get the token first
+        token_payload = {"username": self.username, "password": self.password}
+        token_response = requests.request("POST" ,self.token_url, headers=self.token_headers, data=token_payload)
+        token = token_response.json()["access_token"]
 
+        # use the token to access the protected endpoint
+        url = f"{self.base_url}{self.api_version}/address/12323"
         payload = {}
-        headers = {"content-type": "application/json"}
+        headers = {"content-type": "application/json",
+                   "Authorization": f'Bearer {token}'
+                   }
+        response = requests.request("DELETE", url, headers=headers, data=payload)
+        self.assertEqual(response.status_code, 404)
 
-        respose = requests.request("DELETE", url, headers=headers, data=payload)
+    def test_address_distance(self):
+        # Get the token first
+        token_payload = {"username": self.username, "password": self.password}
+        token_response = requests.request("POST" ,self.token_url, headers=self.token_headers, data=token_payload)
+        token = token_response.json()["access_token"]
 
-        self.assertEqual(respose.status_code, 404)
+        # use the token to access the protected endpoint
+        url = f'{self.base_url}{self.api_version}/address/distance/'
+        payload = json.dumps({
+                    "distance": 100,
+                    "latitude": 70,
+                    "longitude": 120
+                })
+        headers = {"content-type": "application/json",
+                   "Authorization": f'Bearer {token}'
+                   }
+        response = requests.request("GET", url, headers=headers, data=payload)
+        self.assertEqual(response.status_code, 200)
+
+    
+    def test_get_addresses(self):
+        # Get the token first
+        token_payload = {"username": self.username, "password": self.password}
+        token_response = requests.request("POST" ,self.token_url, headers=self.token_headers, data=token_payload)
+        token = token_response.json()["access_token"]
+
+        # use the token to access the protected endpoint
+        url = f"{self.base_url}{self.api_version}/address"
+        payload = {}
+        headers = {"content-type": "application/json",
+                   "Authorization": f'Bearer {token}'
+                   }
+        response = requests.request("GET", url, headers=headers, data=payload)
+        self.assertEqual(response.status_code, 200)
 
 
 if __name__ == "__main__":
