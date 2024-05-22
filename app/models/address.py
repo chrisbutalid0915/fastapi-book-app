@@ -1,7 +1,9 @@
-from sqlalchemy import Column, Integer, Float, String, Boolean # import the class of SQLAlchemy that will define structure of data stored
-from ..database import engine
-from sqlalchemy.ext.declarative import declarative_base  # process of definining SQLAlchemy models
+from sqlalchemy import (  # import the class of SQLAlchemy that will define structure of data stored
+    Boolean, Column, Float, Integer, String)
+from sqlalchemy.ext.declarative import \
+    declarative_base  # process of definining SQLAlchemy models
 
+from ..database import engine
 
 Base = declarative_base()
 
@@ -15,4 +17,6 @@ class Address(Base):
     disable = Column(Boolean)
 
 
-Base.metadata.create_all(bind=engine) # create the database tables on the defined models
+Base.metadata.create_all(
+    bind=engine
+)  # create the database tables on the defined models

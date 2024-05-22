@@ -1,5 +1,6 @@
-from app import create_app
 import uvicorn
+
+from app import create_app
 
 # Create a FASTAPI instance
 app = create_app()

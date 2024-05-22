@@ -1,23 +1,23 @@
 import logging
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from sqlalchemy.orm import Session
-from fastapi import Query, Depends, HTTPException, status
-from app.database import get_db
-
-from app.schemas.user import UserInDB, TokenData
 from datetime import datetime, timedelta
-from jose import JWTError, jwt
-from passlib.context import CryptContext
-
 from typing import Optional
 
-SECRET_KEY="c2426d96adfa1412615c13381b982d7d8ee91668a87136c42e1583dcd001d681" # run `rand hex 32` to generate Random Hex Number
-ALGORITHM ="HS256" # encryption algorithm
+from fastapi import Depends, HTTPException, Query, status
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from jose import JWTError, jwt
+from passlib.context import CryptContext
+from sqlalchemy.orm import Session
 
+from app.database import get_db
+from app.schemas.user import TokenData, UserInDB
+
+SECRET_KEY = "c2426d96adfa1412615c13381b982d7d8ee91668a87136c42e1583dcd001d681"  # run `rand hex 32` to generate Random Hex Number
+ALGORITHM = "HS256"  # encryption algorithm
 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
 
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
@@ -29,13 +29,14 @@ def get_password_hash(password):
 
 def get_user(db, username: str):
     from app.models.user import User
+
     user = db.query(User).filter(User.username == username).first()
     if user is None:
         # Return Exception 404 when no address found
         logging.error(f"User not found")
         raise ValueError("User not found")
     return user
-    
+
 
 def authenticate_user(db, username: str, password: str):
     user = get_user(db, username)
@@ -58,24 +59,28 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     return encoded_jwt
 
 
-async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
-    credential_exception = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, 
-                                         detail="Could not validate credentials", 
-                                         headers={"WWW-Authenticate": "Bearer"})
+async def get_current_user(
+    token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)
+):
+    credential_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
         if username is None:
             raise credential_exception
-        
+
         token_data = TokenData(username=username)
     except JWTError:
         raise credential_exception
-    
+
     user = get_user(db, username=token_data.username)
     if user is None:
         return credential_exception
-    
+
     return user
 
 

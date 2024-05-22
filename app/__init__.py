@@ -1,5 +1,6 @@
 from fastapi import FastAPI
-from app.api.endpoint import swagger, address, token, user
+
+from app.api.endpoint import address, swagger, token, user
 
 
 def create_app():

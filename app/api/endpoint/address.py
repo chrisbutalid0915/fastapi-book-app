@@ -1,36 +1,46 @@
-import fastapi
 import logging
-
-from app.schemas.book import (
-    GetAddress,
-    AddressCreate,
-    AddressUpdate,
-    DeleteAddress,
-    DistanceRequest
-)
-from app.models.address import Address
-from app.database import get_db
-from fastapi import Query, Depends, HTTPException
-from sqlalchemy.orm import Session
-from geopy.distance import geodesic
+import os
 from typing import List
+
+import fastapi
+from fastapi import Depends, HTTPException, Query
+from geopy.distance import geodesic
+from sqlalchemy.orm import Session
+
+from app.database import get_db
+from app.models.address import Address
+from app.schemas.book import (AddressCreate, AddressUpdate, DeleteAddress,
+                              DistanceRequest, GetAddress)
 from app.schemas.user import UserBase
 from app.services import get_current_active_user
 
+router = fastapi.APIRouter()  # create a new router instance
 
-router = fastapi.APIRouter() # create a new router instance
+
+# Create a folder for logs if it doesn't exist
+log_folder = "logs"
+if not os.path.exists(log_folder):
+    os.makedirs(log_folder)
 
 
 # Configure logging settings
+log_file_path = os.path.join(log_folder, "app.log")
 logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s"
+    level=logging.INFO,  # Set the logging level
+    format="%(asctime)s - %(levelname)s - %(message)s",  # Define log message format
+    filename=log_file_path,  # Specify the log file
+    filemode="a",  # Append mode for the log file
 )
 
 
 @router.post("/address", response_model=GetAddress)
-def create_address(address: AddressCreate, db: Session = Depends(get_db), UserBase = Depends(get_current_active_user)):
+def create_address(
+    address: AddressCreate,
+    db: Session = Depends(get_db),
+    UserBase=Depends(get_current_active_user),
+):
     from app.models.address import Address
+
     """
     Create new Address Book
     :param address: class
@@ -54,8 +64,10 @@ def create_address(address: AddressCreate, db: Session = Depends(get_db), UserBa
 
 @router.put("/address/{address_id}", response_model=GetAddress)
 def update_address(
-    address_id: int, address: AddressUpdate, db: Session = Depends(get_db),
-    UserBase = Depends(get_current_active_user)
+    address_id: int,
+    address: AddressUpdate,
+    db: Session = Depends(get_db),
+    UserBase=Depends(get_current_active_user),
 ):
     """
     Update details Address Book
@@ -83,7 +95,11 @@ def update_address(
 
 
 @router.get("/address/{address_id}", response_model=GetAddress)
-def get_address(address_id: int, db: Session = Depends(get_db), UserBase = Depends(get_current_active_user)):
+def get_address(
+    address_id: int,
+    db: Session = Depends(get_db),
+    UserBase=Depends(get_current_active_user),
+):
     """
     Get the address book by id
     :param address_id: int
@@ -101,7 +117,9 @@ def get_address(address_id: int, db: Session = Depends(get_db), UserBase = Depen
 
 
 @router.get("/address", response_model=List[GetAddress])
-def get_addresses(db: Session = Depends(get_db), UserBase = Depends(get_current_active_user)):
+def get_addresses(
+    db: Session = Depends(get_db), UserBase=Depends(get_current_active_user)
+):
     """
     Get all the addresses
     :param db: class
@@ -109,7 +127,7 @@ def get_addresses(db: Session = Depends(get_db), UserBase = Depends(get_current_
     """
     logging.info(f"GET /address")
     # Get all the addresses
-    query = db.query(Address).all() 
+    query = db.query(Address).all()
     return query
 
 
@@ -117,7 +135,7 @@ def get_addresses(db: Session = Depends(get_db), UserBase = Depends(get_current_
 def get_addresses_within_distance(
     request: DistanceRequest,
     db: Session = Depends(get_db),
-    UserBase = Depends(get_current_active_user)
+    UserBase=Depends(get_current_active_user),
 ):
     """
     Get the addresses within the given distance
@@ -132,28 +150,33 @@ def get_addresses_within_distance(
     addresses_within_distance = []
     all_addresses = db.query(Address).all()
     for address in all_addresses:
-        address_coordinates = (address.latitude,address.longitude)
+        address_coordinates = (address.latitude, address.longitude)
         if geodesic(current_location, address_coordinates).km <= request.distance:
             addresses_within_distance.append(address)
     return addresses_within_distance
 
 
 @router.delete("/address/{address_id}", response_model=DeleteAddress)
-def delete_address(address_id: int, db: Session = Depends(get_db), UserBase = Depends(get_current_active_user)):
+def delete_address(
+    address_id: int,
+    db: Session = Depends(get_db),
+    current_user: UserBase = Depends(get_current_active_user),
+):
     """
     Delete the address book by id
     :param address_id: int
     :param db: class
     :return: query
     """
-    logging.info(f"DELETE /address/{address_id}")
-    # Get the address by ID
-    query = db.query(Address).filter(Address.id == address_id).first()
-    if query is None:
-        logging.error(f"DELETE /address/{address_id} not found")
-        raise HTTPException(status_code=404, detail="Address not found")
-    # Delete the selected query address
-    db.delete(query) 
-    # Commit the transaction
-    db.commit()
-    return query
+    if current_user:
+        logging.info(f"DELETE /address/{address_id}")
+        # Get the address by ID
+        query = db.query(Address).filter(Address.id == address_id).first()
+        if query is None:
+            logging.error(f"DELETE /address/{address_id} not found")
+            raise HTTPException(status_code=404, detail="Address not found")
+        # Delete the selected query address
+        db.delete(query)
+        # Commit the transaction
+        db.commit()
+        return query

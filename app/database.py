@@ -1,4 +1,5 @@
 from pathlib import Path
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -10,10 +11,13 @@ db_path = f"sqlite:///{BASE_DIR}/test_db.sqlite3"
 SQLALCHEMY_DATABASE_URL = db_path
 
 # Create database engine
-engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
+)
 
 # Create a sessionmake to manage database sessions
 session_local = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
 
 # Function to get a database session
 def get_db():

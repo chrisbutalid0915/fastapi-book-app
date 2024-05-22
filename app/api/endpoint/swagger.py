@@ -1,10 +1,11 @@
-import fastapi
 import logging
-from fastapi.responses import HTMLResponse
-from fastapi.openapi.models import OpenAPI
-from fastapi.openapi.docs import get_swagger_ui_html
 
-router = fastapi.APIRouter() # create a new router instance
+import fastapi
+from fastapi.openapi.docs import get_swagger_ui_html
+from fastapi.openapi.models import OpenAPI
+from fastapi.responses import HTMLResponse
+
+router = fastapi.APIRouter()  # create a new router instance
 
 
 @router.get("/openapi.json")
